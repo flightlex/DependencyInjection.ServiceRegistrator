@@ -31,6 +31,23 @@ public static class ServiceRegistrator
         });
     }
 
+    public static void Register(IServiceCollection serviceCollection)
+    {
+        var executingAssembly = Assembly.GetCallingAssembly();
+
+        var servicesAttributes = executingAssembly
+            .GetTypes()
+            .AsQueryable() // querying to save some unsignificant stack memory but why not :)
+            .Where(x => x.GetCustomAttribute<ServiceRegistrationAttribute>() != null)
+            .Select(x => x.GetCustomAttribute<ServiceRegistrationAttribute>())
+            .ToArray();
+
+        foreach (var serviceAttribute in servicesAttributes)
+        {
+            RegisterService(serviceCollection, serviceAttribute);
+        }
+    }
+
     private static void RegisterService(IServiceCollection collection, ServiceRegistrationAttribute attr)
     {
         switch (attr.Type)
